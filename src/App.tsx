@@ -3,6 +3,7 @@ import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { Login } from './pages/Login'
 import { Dashboard } from './pages/Dashboard'
 import { RoundEditor } from './pages/RoundEditor'
+import { EventEditor } from './pages/EventEditor'
 import './App.css'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -65,6 +66,22 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <RoundEditor />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/events/new"
+        element={
+          <ProtectedRoute>
+            <EventEditor />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/events/:id/edit"
+        element={
+          <ProtectedRoute>
+            <EventEditor />
           </ProtectedRoute>
         }
       />
