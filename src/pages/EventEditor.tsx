@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { supabase } from '../lib/supabase'
@@ -26,6 +26,18 @@ export function EventEditor() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
+  const persistRoundToEvent = useCallback(
+    async (roundId: string, position: number) => {
+      if (!id) return
+      await supabase.from('event_rounds').insert({
+        event_id: id,
+        round_id: roundId,
+        position,
+      })
+    },
+    [id]
+  )
+
   useEffect(() => {
     loadAvailableRounds()
     if (id) {
@@ -33,19 +45,48 @@ export function EventEditor() {
     }
   }, [id])
 
-  // Handle newly created round from RoundEditor
+  // Handle newly created round from RoundEditor - add to UI and persist to DB
   useEffect(() => {
     const addRoundId = searchParams.get('addRound')
-    if (addRoundId && availableRounds.length > 0) {
+    if (addRoundId && availableRounds.length > 0 && id) {
       const roundToAdd = availableRounds.find((r) => r.id === addRoundId)
       if (roundToAdd && !selectedRounds.find((r) => r.id === addRoundId)) {
-        setSelectedRounds((prev) => [...prev, roundToAdd])
+        // Add to UI
+        setSelectedRounds((prev) => {
+          const newRounds = [...prev, roundToAdd]
+          // Persist to database
+          persistRoundToEvent(addRoundId, newRounds.length)
+          return newRounds
+        })
       }
       // Clear the param
       searchParams.delete('addRound')
       setSearchParams(searchParams, { replace: true })
     }
-  }, [searchParams, availableRounds, selectedRounds, setSearchParams])
+  }, [searchParams, availableRounds, selectedRounds, setSearchParams, id, persistRoundToEvent])
+
+  const handleCreateNewRound = async () => {
+    let eventId = id
+
+    // If this is a new event, save it first
+    if (!eventId) {
+      const eventTitle = title.trim() || 'Untitled Trivia Night'
+      const { data: newEvent, error: eventError } = await supabase
+        .from('events')
+        .insert({ title: eventTitle, date, author_id: user?.id })
+        .select()
+        .single()
+
+      if (eventError) {
+        setError('Failed to save event: ' + eventError.message)
+        return
+      }
+      eventId = newEvent.id
+    }
+
+    // Navigate to round editor with return path to this event
+    navigate(`/rounds/new?returnTo=${encodeURIComponent(`/events/${eventId}/edit`)}`)
+  }
 
   const loadAvailableRounds = async () => {
     const { data: rounds } = await supabase
@@ -251,13 +292,7 @@ export function EventEditor() {
           + Add Round from Library
         </button>
 
-        <button
-          onClick={() => {
-            const returnPath = id ? `/events/${id}/edit` : '/events/new'
-            navigate(`/rounds/new?returnTo=${encodeURIComponent(returnPath)}`)
-          }}
-          className="create-round-btn"
-        >
+        <button onClick={handleCreateNewRound} className="create-round-btn">
           + Create New Round
         </button>
       </div>
