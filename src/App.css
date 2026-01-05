@@ -1266,11 +1266,11 @@ body {
   }
 
   .print-round .question-item {
-    margin-bottom: 0.08in;
-    padding-bottom: 0.08in;
+    margin-bottom: 0.06in;
+    padding-bottom: 0.06in;
     border-bottom: 0.5pt solid #ccc;
-    font-size: 10pt;
-    line-height: 1.3;
+    font-size: 9pt;
+    line-height: 1.25;
   }
 
   .print-round .question-item:last-child {
@@ -1285,6 +1285,6 @@ body {
 
   .print-round .answer {
     color: #333;
-    font-size: 9pt;
+    font-size: 8pt;
   }
 }
