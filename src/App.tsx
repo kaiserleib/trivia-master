@@ -4,6 +4,7 @@ import { Login } from './pages/Login'
 import { Dashboard } from './pages/Dashboard'
 import { RoundEditor } from './pages/RoundEditor'
 import { EventEditor } from './pages/EventEditor'
+import { Presentation } from './pages/Presentation'
 import './App.css'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -82,6 +83,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <EventEditor />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/events/:id/present"
+        element={
+          <ProtectedRoute>
+            <Presentation />
           </ProtectedRoute>
         }
       />

@@ -1,13 +1,43 @@
+import { useState, useEffect } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { useNavigate } from 'react-router-dom'
+import { supabase } from '../lib/supabase'
+import type { Event } from '../lib/database.types'
 
 export function Dashboard() {
   const { user, signOut } = useAuth()
   const navigate = useNavigate()
+  const [events, setEvents] = useState<Event[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    loadEvents()
+  }, [])
+
+  const loadEvents = async () => {
+    const { data } = await supabase
+      .from('events')
+      .select('*')
+      .order('date', { ascending: false })
+      .limit(10)
+
+    if (data) {
+      setEvents(data)
+    }
+    setLoading(false)
+  }
 
   const handleSignOut = async () => {
     await signOut()
     navigate('/login')
+  }
+
+  const formatDate = (dateStr: string) => {
+    return new Date(dateStr).toLocaleDateString('en-US', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+    })
   }
 
   return (
@@ -30,15 +60,41 @@ export function Dashboard() {
             <button onClick={() => navigate('/rounds/new')}>
               Create New Round
             </button>
-            <button onClick={() => navigate('/questions')}>
-              Browse Questions
-            </button>
           </div>
         </section>
 
         <section className="recent">
           <h2>Recent Events</h2>
-          <p>No events yet. Create your first trivia night!</p>
+          {loading ? (
+            <p>Loading...</p>
+          ) : events.length === 0 ? (
+            <p>No events yet. Create your first trivia night!</p>
+          ) : (
+            <div className="events-list">
+              {events.map((event) => (
+                <div key={event.id} className="event-card">
+                  <div className="event-info">
+                    <span className="event-title">{event.title}</span>
+                    <span className="event-date">{formatDate(event.date)}</span>
+                    <span className={`event-status status-${event.status}`}>
+                      {event.status}
+                    </span>
+                  </div>
+                  <div className="event-actions">
+                    <button onClick={() => navigate(`/events/${event.id}/edit`)}>
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => navigate(`/events/${event.id}/present`)}
+                      className="present-btn"
+                    >
+                      Present
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </section>
       </main>
     </div>
