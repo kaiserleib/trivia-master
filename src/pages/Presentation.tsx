@@ -197,6 +197,24 @@ export function Presentation() {
   const inReviewMode = reviewingRound !== null && slide?.roundNumber === reviewingRound
   const showAnswer = inReviewMode && answerRevealed
 
+  // Parse question text to separate question from multiple choice options
+  const parseQuestionText = (text: string): { question: string; options: string[] } => {
+    // Look for pattern like "A)" or "A." that indicates start of options
+    const optionsMatch = text.match(/^(.*?)\s*([A-D][).]\s*.*)$/s)
+    if (optionsMatch) {
+      const optionsText = optionsMatch[2]
+      // Split options by A) B) C) D) pattern, keeping the letter
+      const options = optionsText.split(/(?=[A-D][).]\s*)/).filter(Boolean).map(o => o.trim())
+      return {
+        question: optionsMatch[1].trim(),
+        options,
+      }
+    }
+    return { question: text, options: [] }
+  }
+
+  const parsedQuestion = slide?.questionText ? parseQuestionText(slide.questionText) : null
+
   return (
     <div className="presentation" onClick={nextSlide}>
       {/* Top navigation bar */}
@@ -248,13 +266,20 @@ export function Presentation() {
         </div>
       )}
 
-      {slide?.type === 'question' && (
+      {slide?.type === 'question' && parsedQuestion && (
         <div className="slide slide-question">
           <p className="question-label">
             Round {slide.roundNumber} · Question {slide.questionNumber}
             {inReviewMode && ' · Review'}
           </p>
-          <div className="question-text">{slide.questionText}</div>
+          <div className="question-text">{parsedQuestion.question}</div>
+          {parsedQuestion.options.length > 0 && (
+            <div className="question-options">
+              {parsedQuestion.options.map((option, i) => (
+                <div key={i} className="option">{option}</div>
+              ))}
+            </div>
+          )}
           {showAnswer && (
             <div className="answer">
               <span className="answer-label">Answer:</span> {slide.answer}
