@@ -838,18 +838,86 @@ body {
   color: #888;
 }
 
-.slide-counter {
+.presentation-nav {
   position: absolute;
-  top: 1rem;
-  left: 1rem;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 10;
+}
+
+.presentation-nav .round-nav {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.presentation-nav .round-nav button {
+  padding: 0.5rem 1rem;
+  background: transparent;
+  border: 1px solid #444;
+  color: #888;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.presentation-nav .round-nav button:hover {
+  background: #333;
+  color: #fff;
+}
+
+.presentation-nav .round-nav button.active {
+  background: #4a4ae0;
+  border-color: #4a4ae0;
+  color: #fff;
+}
+
+.presentation-nav .slide-counter {
   font-size: 0.9rem;
   color: #666;
 }
 
+.review-nav {
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  z-index: 10;
+}
+
+.review-nav button {
+  padding: 0.5rem 1rem;
+  background: transparent;
+  border: 1px solid #444;
+  color: #888;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.review-nav button:hover {
+  background: #333;
+  color: #fff;
+}
+
+.review-nav button.active {
+  background: #f97316;
+  border-color: #f97316;
+  color: #fff;
+}
+
 .exit-btn {
   position: absolute;
-  top: 1rem;
-  right: 1rem;
+  top: 4rem;
+  right: 5rem;
   width: 3rem;
   height: 3rem;
   background: transparent;

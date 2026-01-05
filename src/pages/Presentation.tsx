@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabase'
 import type { Question, Round } from '../lib/database.types'
 
 interface SlideData {
-  type: 'cover' | 'round-intro' | 'question' | 'answer'
+  type: 'cover' | 'round-intro' | 'question'
   title?: string
   date?: string
   roundNumber?: number
@@ -14,13 +14,21 @@ interface SlideData {
   answer?: string
 }
 
+interface RoundInfo {
+  number: number
+  title: string
+  startIndex: number
+  questionCount: number
+}
+
 export function Presentation() {
   const { id } = useParams()
   const navigate = useNavigate()
   const [slides, setSlides] = useState<SlideData[]>([])
+  const [rounds, setRounds] = useState<RoundInfo[]>([])
   const [currentSlide, setCurrentSlide] = useState(0)
   const [loading, setLoading] = useState(true)
-  const [showAnswer, setShowAnswer] = useState(false)
+  const [reviewingRound, setReviewingRound] = useState<number | null>(null)
 
   useEffect(() => {
     const loadEvent = async (eventId: string) => {
@@ -47,6 +55,7 @@ export function Presentation() {
       }
 
       const slideList: SlideData[] = []
+      const roundList: RoundInfo[] = []
 
       // Cover slide
       slideList.push({
@@ -63,6 +72,7 @@ export function Presentation() {
       // Load each round's questions
       for (const er of eventRounds) {
         const round = er.rounds as unknown as Round
+        const roundStartIndex = slideList.length
 
         // Round intro slide
         slideList.push({
@@ -78,6 +88,7 @@ export function Presentation() {
           .eq('round_id', round.id)
           .order('position')
 
+        let questionCount = 0
         if (roundQuestions) {
           for (const rq of roundQuestions) {
             const question = rq.questions as unknown as Question
@@ -90,11 +101,20 @@ export function Presentation() {
               questionText: question.text,
               answer: question.answer,
             })
+            questionCount++
           }
         }
+
+        roundList.push({
+          number: er.position,
+          title: round.title,
+          startIndex: roundStartIndex,
+          questionCount,
+        })
       }
 
       setSlides(slideList)
+      setRounds(roundList)
       setLoading(false)
     }
 
@@ -104,27 +124,33 @@ export function Presentation() {
   }, [id, navigate])
 
   const nextSlide = useCallback(() => {
-    const current = slides[currentSlide]
-
-    // If we're on a question and answer isn't shown, show answer first
-    if (current?.type === 'question' && !showAnswer) {
-      setShowAnswer(true)
-      return
-    }
-
-    // Move to next slide
     if (currentSlide < slides.length - 1) {
       setCurrentSlide(currentSlide + 1)
-      setShowAnswer(false)
     }
-  }, [currentSlide, slides, showAnswer])
+  }, [currentSlide, slides.length])
 
   const prevSlide = useCallback(() => {
     if (currentSlide > 0) {
       setCurrentSlide(currentSlide - 1)
-      setShowAnswer(false)
     }
   }, [currentSlide])
+
+  const goToRound = useCallback((roundNumber: number) => {
+    const round = rounds.find((r) => r.number === roundNumber)
+    if (round) {
+      setCurrentSlide(round.startIndex)
+      setReviewingRound(null)
+    }
+  }, [rounds])
+
+  const reviewRound = useCallback((roundNumber: number) => {
+    const round = rounds.find((r) => r.number === roundNumber)
+    if (round) {
+      // Go to first question of the round (skip the intro slide)
+      setCurrentSlide(round.startIndex + 1)
+      setReviewingRound(roundNumber)
+    }
+  }, [rounds])
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
@@ -155,11 +181,39 @@ export function Presentation() {
   }
 
   const slide = slides[currentSlide]
+  const showAnswer = reviewingRound !== null && slide?.roundNumber === reviewingRound
 
   return (
     <div className="presentation" onClick={nextSlide}>
-      <div className="slide-counter">
-        {currentSlide + 1} / {slides.length}
+      {/* Top navigation bar */}
+      <div className="presentation-nav" onClick={(e) => e.stopPropagation()}>
+        <div className="round-nav">
+          {rounds.map((round) => (
+            <button
+              key={round.number}
+              onClick={() => goToRound(round.number)}
+              className={slide?.roundNumber === round.number && !reviewingRound ? 'active' : ''}
+            >
+              Round {round.number}
+            </button>
+          ))}
+        </div>
+        <div className="slide-counter">
+          {currentSlide + 1} / {slides.length}
+        </div>
+      </div>
+
+      {/* Right side review buttons */}
+      <div className="review-nav" onClick={(e) => e.stopPropagation()}>
+        {rounds.map((round) => (
+          <button
+            key={round.number}
+            onClick={() => reviewRound(round.number)}
+            className={reviewingRound === round.number ? 'active' : ''}
+          >
+            Review {round.number}
+          </button>
+        ))}
       </div>
 
       <button className="exit-btn" onClick={(e) => { e.stopPropagation(); exitPresentation(); }}>
@@ -184,6 +238,7 @@ export function Presentation() {
         <div className="slide slide-question">
           <p className="question-label">
             Round {slide.roundNumber} · Question {slide.questionNumber}
+            {reviewingRound && ' · Review'}
           </p>
           <div className="question-text">{slide.questionText}</div>
           {showAnswer && (
