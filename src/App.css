@@ -1120,3 +1120,143 @@ body {
   font-size: 0.9rem;
   color: #6bff6b;
 }
+
+/* Print View */
+.print-view {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.print-view.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  font-size: 1.2rem;
+}
+
+.print-controls {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.print-controls button {
+  padding: 0.5rem 1rem;
+  border: 1px solid #444;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.print-controls .back-btn {
+  background: transparent;
+  color: #fff;
+}
+
+.print-controls .back-btn:hover {
+  background: #333;
+}
+
+.print-controls .print-btn {
+  background: #4a4ae0;
+  border-color: #4a4ae0;
+  color: #fff;
+}
+
+.print-controls .print-btn:hover {
+  background: #3a3ad0;
+}
+
+.print-round {
+  margin-bottom: 3rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid #333;
+}
+
+.print-round:last-child {
+  border-bottom: none;
+}
+
+.print-round .round-header {
+  margin-bottom: 1.5rem;
+}
+
+.print-round .round-header h1 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.5rem;
+}
+
+.print-round .event-info {
+  color: #888;
+  font-size: 0.9rem;
+}
+
+.print-round .questions-list {
+  margin: 0;
+  padding-left: 1.5rem;
+}
+
+.print-round .question-item {
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #2a2a3e;
+}
+
+.print-round .question-item:last-child {
+  border-bottom: none;
+}
+
+.print-round .question-text {
+  margin-bottom: 0.5rem;
+  white-space: pre-wrap;
+}
+
+.print-round .answer {
+  color: #4a4ae0;
+  font-weight: 500;
+}
+
+/* Print-specific styles */
+@media print {
+  body {
+    background: white;
+    color: black;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  .print-view {
+    max-width: none;
+    padding: 0;
+  }
+
+  .print-round {
+    page-break-after: always;
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+  }
+
+  .print-round:last-child {
+    page-break-after: auto;
+  }
+
+  .print-round .round-header h1 {
+    font-size: 18pt;
+  }
+
+  .print-round .event-info {
+    color: #666;
+  }
+
+  .print-round .question-item {
+    border-bottom-color: #ccc;
+  }
+
+  .print-round .answer {
+    color: #333;
+  }
+}

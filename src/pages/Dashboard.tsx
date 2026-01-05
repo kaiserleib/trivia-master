@@ -85,6 +85,9 @@ export function Dashboard() {
                     <button onClick={() => navigate(`/events/${event.id}/edit`)}>
                       Edit
                     </button>
+                    <button onClick={() => navigate(`/events/${event.id}/print`)}>
+                      Print
+                    </button>
                     <button
                       onClick={() => navigate(`/events/${event.id}/present`)}
                       className="present-btn"

@@ -5,6 +5,7 @@ import { Dashboard } from './pages/Dashboard'
 import { RoundEditor } from './pages/RoundEditor'
 import { EventEditor } from './pages/EventEditor'
 import { Presentation } from './pages/Presentation'
+import { PrintView } from './pages/PrintView'
 import { Settings } from './pages/Settings'
 import './App.css'
 
@@ -92,6 +93,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <Presentation />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/events/:id/print"
+        element={
+          <ProtectedRoute>
+            <PrintView />
           </ProtectedRoute>
         }
       />
