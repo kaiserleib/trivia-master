@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { supabase } from '../lib/supabase'
 import type { Question } from '../lib/database.types'
+import { triviaPrompt } from '../lib/prompts'
 
 interface QuestionDraft {
   id?: string
@@ -161,22 +162,6 @@ export function RoundEditor() {
         return
       }
 
-      const prompt = `Generate 10 trivia questions about "${topic}".
-
-Format each question exactly like this:
-- Alternate between short-answer questions and multiple-choice questions
-- For short-answer: just the question followed by Answer: on the next line
-- For multiple-choice: question followed by A) B) C) D) options, then Answer: with the letter and answer
-
-Example format:
-1. What is the capital of France?
-Answer: Paris
-
-2. Which planet is known as the Red Planet? A) Venus B) Mars C) Jupiter D) Saturn
-Answer: B) Mars
-
-Now generate 10 trivia questions about "${topic}":`
-
       const response = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: {
@@ -191,7 +176,7 @@ Now generate 10 trivia questions about "${topic}":`
           messages: [
             {
               role: 'user',
-              content: prompt,
+              content: triviaPrompt(topic),
             },
           ],
         }),
