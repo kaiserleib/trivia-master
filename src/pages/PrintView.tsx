@@ -16,8 +16,6 @@ interface RoundWithQuestions {
 export function PrintView() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const [eventTitle, setEventTitle] = useState('')
-  const [eventDate, setEventDate] = useState('')
   const [rounds, setRounds] = useState<RoundWithQuestions[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -33,17 +31,6 @@ export function PrintView() {
         navigate('/')
         return
       }
-
-      setEventTitle(event.title)
-      // Fix timezone issue
-      setEventDate(
-        new Date(event.date + 'T12:00:00').toLocaleDateString('en-US', {
-          weekday: 'long',
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric',
-        })
-      )
 
       const { data: eventRounds } = await supabase
         .from('event_rounds')
@@ -116,7 +103,6 @@ export function PrintView() {
         <div key={round.number} className="print-round">
           <div className="round-header">
             <h1>Round {round.number}: {round.title}</h1>
-            <p className="event-info">{eventTitle} · {eventDate}</p>
           </div>
 
           <ol className="questions-list">
