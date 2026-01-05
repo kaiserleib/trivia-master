@@ -5,6 +5,7 @@ import { Dashboard } from './pages/Dashboard'
 import { RoundEditor } from './pages/RoundEditor'
 import { EventEditor } from './pages/EventEditor'
 import { Presentation } from './pages/Presentation'
+import { Settings } from './pages/Settings'
 import './App.css'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -91,6 +92,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <Presentation />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/settings"
+        element={
+          <ProtectedRoute>
+            <Settings />
           </ProtectedRoute>
         }
       />

@@ -45,6 +45,7 @@ export function Dashboard() {
         <h1>Trivia Master</h1>
         <div className="user-info">
           <span>{user?.email}</span>
+          <button onClick={() => navigate('/settings')}>Settings</button>
           <button onClick={handleSignOut}>Sign Out</button>
         </div>
       </header>

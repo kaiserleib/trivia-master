@@ -38,6 +38,14 @@ export interface EventRound {
   position: number
 }
 
+export interface UserSettings {
+  id: string
+  user_id: string
+  claude_api_key: string | null
+  created_at: string
+  updated_at: string
+}
+
 // Extended types with relations
 export interface RoundWithQuestions extends Round {
   questions: Question[]

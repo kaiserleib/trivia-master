@@ -25,6 +25,7 @@ export function RoundEditor() {
   const [markdownText, setMarkdownText] = useState('')
   const [editorMode, setEditorMode] = useState<EditorMode>('markdown')
   const [saving, setSaving] = useState(false)
+  const [generating, setGenerating] = useState(false)
   const [error, setError] = useState('')
 
   const questionsToMarkdown = (qs: QuestionDraft[]): string => {
@@ -135,6 +136,91 @@ export function RoundEditor() {
     }
 
     return parsed
+  }
+
+  const generateWithClaude = async () => {
+    if (!topic.trim()) {
+      setError('Enter a topic first to generate questions')
+      return
+    }
+
+    setGenerating(true)
+    setError('')
+
+    try {
+      // Get user's API key
+      const { data: settings } = await supabase
+        .from('user_settings')
+        .select('claude_api_key')
+        .eq('user_id', user?.id)
+        .single()
+
+      if (!settings?.claude_api_key) {
+        setError('Add your Claude API key in Settings first')
+        setGenerating(false)
+        return
+      }
+
+      const prompt = `Generate 10 trivia questions about "${topic}".
+
+Format each question exactly like this:
+- Alternate between short-answer questions and multiple-choice questions
+- For short-answer: just the question followed by Answer: on the next line
+- For multiple-choice: question followed by A) B) C) D) options, then Answer: with the letter and answer
+
+Example format:
+1. What is the capital of France?
+Answer: Paris
+
+2. Which planet is known as the Red Planet? A) Venus B) Mars C) Jupiter D) Saturn
+Answer: B) Mars
+
+Now generate 10 trivia questions about "${topic}":`
+
+      const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': settings.claude_api_key,
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-direct-browser-access': 'true',
+        },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 2048,
+          messages: [
+            {
+              role: 'user',
+              content: prompt,
+            },
+          ],
+        }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error?.message || 'API request failed')
+      }
+
+      const data = await response.json()
+      const generatedText = data.content[0]?.text || ''
+
+      // Append to existing markdown or set new
+      if (markdownText.trim()) {
+        setMarkdownText(markdownText + '\n\n' + generatedText)
+      } else {
+        setMarkdownText(generatedText)
+      }
+
+      // Auto-set title if empty
+      if (!title.trim()) {
+        setTitle(topic)
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to generate questions')
+    } finally {
+      setGenerating(false)
+    }
   }
 
   const switchToCards = () => {
@@ -296,18 +382,28 @@ export function RoundEditor() {
         />
       </div>
 
-      <div className="editor-mode-toggle">
+      <div className="editor-controls">
+        <div className="editor-mode-toggle">
+          <button
+            className={editorMode === 'markdown' ? 'active' : ''}
+            onClick={switchToMarkdown}
+          >
+            Markdown
+          </button>
+          <button
+            className={editorMode === 'cards' ? 'active' : ''}
+            onClick={switchToCards}
+          >
+            Cards
+          </button>
+        </div>
+
         <button
-          className={editorMode === 'markdown' ? 'active' : ''}
-          onClick={switchToMarkdown}
+          onClick={generateWithClaude}
+          disabled={generating}
+          className="generate-btn"
         >
-          Markdown
-        </button>
-        <button
-          className={editorMode === 'cards' ? 'active' : ''}
-          onClick={switchToCards}
-        >
-          Cards
+          {generating ? 'Generating...' : 'Generate with Claude'}
         </button>
       </div>
 
