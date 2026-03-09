@@ -52,27 +52,28 @@ export function EventEditor() {
   )
 
   useEffect(() => {
-    loadAvailableRounds()
-    if (id) {
-      loadEvent(id)
-    }
-  }, [id])
+    const init = async () => {
+      const rounds = await loadAvailableRounds()
+      let currentRounds: RoundSelection[] = []
 
-  useEffect(() => {
-    const addRoundId = searchParams.get('addRound')
-    if (addRoundId && availableRounds.length > 0 && id) {
-      const roundToAdd = availableRounds.find((r) => r.id === addRoundId)
-      if (roundToAdd && !selectedRounds.find((r) => r.id === addRoundId)) {
-        setSelectedRounds((prev) => {
-          const newRounds = [...prev, roundToAdd]
-          persistRoundToEvent(addRoundId, newRounds.length)
-          return newRounds
-        })
+      if (id) {
+        currentRounds = await loadEvent(id)
       }
-      searchParams.delete('addRound')
-      setSearchParams(searchParams, { replace: true })
+
+      const addRoundId = searchParams.get('addRound')
+      if (addRoundId && id && rounds) {
+        const roundToAdd = rounds.find((r) => r.id === addRoundId)
+        if (roundToAdd && !currentRounds.find((r) => r.id === addRoundId)) {
+          const newRounds = [...currentRounds, roundToAdd]
+          setSelectedRounds(newRounds)
+          await persistRoundToEvent(addRoundId, newRounds.length)
+        }
+        searchParams.delete('addRound')
+        setSearchParams(searchParams, { replace: true })
+      }
     }
-  }, [searchParams, availableRounds, selectedRounds, setSearchParams, id, persistRoundToEvent])
+    init()
+  }, [id])
 
   const handleCreateNewRound = async () => {
     let eventId = id
@@ -95,7 +96,7 @@ export function EventEditor() {
     navigate(`/rounds/new?returnTo=${encodeURIComponent(`/events/${eventId}/edit`)}`)
   }
 
-  const loadAvailableRounds = async () => {
+  const loadAvailableRounds = async (): Promise<RoundSelection[] | null> => {
     const { data: rounds } = await supabase
       .from('rounds')
       .select('id, title, topic')
@@ -116,10 +117,12 @@ export function EventEditor() {
         })
       )
       setAvailableRounds(roundsWithCounts)
+      return roundsWithCounts
     }
+    return null
   }
 
-  const loadEvent = async (eventId: string) => {
+  const loadEvent = async (eventId: string): Promise<RoundSelection[]> => {
     const { data: event } = await supabase
       .from('events')
       .select('*')
@@ -154,8 +157,10 @@ export function EventEditor() {
           })
         )
         setSelectedRounds(rounds)
+        return rounds
       }
     }
+    return []
   }
 
   const addRound = (round: RoundSelection) => {
