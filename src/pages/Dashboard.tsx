@@ -35,6 +35,19 @@ export function Dashboard() {
     event.title.toLowerCase().includes(search.toLowerCase())
   )
 
+  const handleDelete = async (event: Event) => {
+    if (!window.confirm(`Delete "${event.title}"? This will also remove its round associations.`)) {
+      return
+    }
+
+    const { error } = await supabase.from('events').delete().eq('id', event.id)
+    if (error) {
+      alert('Failed to delete event: ' + error.message)
+      return
+    }
+    setEvents((prev) => prev.filter((e) => e.id !== event.id))
+  }
+
   const handleSignOut = async () => {
     await signOut()
     navigate('/login')
@@ -110,6 +123,9 @@ export function Dashboard() {
                     </Button>
                     <Button size="sm" onClick={() => navigate(`/events/${event.id}/present`)}>
                       Present
+                    </Button>
+                    <Button variant="destructive" size="sm" onClick={() => handleDelete(event)}>
+                      Delete
                     </Button>
                   </div>
                 </CardContent>
