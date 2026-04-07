@@ -327,8 +327,12 @@ export function RoundEditor() {
       }
 
       if (returnTo) {
-        const separator = returnTo.includes('?') ? '&' : '?'
-        navigate(`${returnTo}${separator}addRound=${roundId}`)
+        if (isEditing) {
+          navigate(returnTo)
+        } else {
+          const separator = returnTo.includes('?') ? '&' : '?'
+          navigate(`${returnTo}${separator}addRound=${roundId}`)
+        }
       } else {
         navigate('/')
       }

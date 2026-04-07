@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { useNavigate, useParams, useSearchParams, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { supabase } from '../lib/supabase'
 import type { Round } from '../lib/database.types'
@@ -26,6 +26,7 @@ interface RoundSelection {
 export function EventEditor() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const location = useLocation()
   const [searchParams, setSearchParams] = useSearchParams()
   const { user } = useAuth()
   const isEditing = Boolean(id)
@@ -286,6 +287,9 @@ export function EventEditor() {
                   </span>
                 </div>
                 <div className="flex gap-1">
+                  <Button variant="outline" size="icon-xs" onClick={() => navigate(`/rounds/${round.id}/edit?returnTo=${encodeURIComponent(location.pathname)}`)}>
+                    ✎
+                  </Button>
                   <Button variant="outline" size="icon-xs" onClick={() => moveRound(index, 'up')} disabled={index === 0}>
                     ↑
                   </Button>
